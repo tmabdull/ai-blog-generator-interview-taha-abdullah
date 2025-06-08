@@ -1,0 +1,4 @@
+openai
+flask
+apscheduler
+python-dotenv
