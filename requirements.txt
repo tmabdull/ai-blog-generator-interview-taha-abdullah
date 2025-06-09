@@ -1,4 +1,6 @@
-openai
+openai>1.0
 flask
+flask-cors
 apscheduler
 python-dotenv
+pytz
