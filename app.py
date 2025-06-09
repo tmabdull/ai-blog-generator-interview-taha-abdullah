@@ -1,6 +1,7 @@
 from seo_fetcher import fetch_seo_data
 from ai_generator import generate_blog_post
 
+from waitress import serve
 from flask import Flask, request, jsonify
 import os
 
@@ -50,7 +51,8 @@ scheduler = BackgroundScheduler(timezone=pacific_tz)
 scheduler.add_job(
     scheduled_generate, 
     trigger=IntervalTrigger(days=1, timezone=pacific_tz), 
-    next_run_time=datetime.now(pacific_tz))
+    next_run_time=datetime.now(pacific_tz)
+)
 scheduler.start()
 
 # ------------------------
@@ -78,4 +80,5 @@ def generate():
         return jsonify({"error": "Internal server error occurred"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    serve(app, host="0.0.0.0", port=8000)
