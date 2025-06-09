@@ -9,7 +9,13 @@ from apscheduler.triggers.interval import IntervalTrigger
 from datetime import datetime
 import pytz
 
+from flask_cors import CORS
+import sys
+
+# Vercel config
+sys.path.append(os.path.dirname(__file__)) # Add the api directory to Python path
 app = Flask(__name__)
+CORS(app)
 
 # Main function to fetch SEO data and generate blog post
 def generate_blog_post_for_keyword(keyword, save_to_file=False):
@@ -73,6 +79,51 @@ def generate():
             return jsonify({"error": "SEO data not found for keyword"}), 404
             
         return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({"error": "Internal server error occurred"}), 500
+
+# Below routes are used to display blogs on the frontend
+@app.route('/posts', methods=['GET'])
+def get_posts():
+    """Return a list of markdown filenames in generated_posts directory (for frontend)."""
+    try:
+        # Ensure the posts directory exists
+        if not os.path.exists(POSTS_DIR):
+            os.makedirs(POSTS_DIR, exist_ok=True)
+            return jsonify({"files": []})
+        
+        # Get all .md files from the directory
+        files = [f for f in os.listdir(POSTS_DIR) if f.endswith('.md')]
+        files.sort(reverse=True)  # Most recent first
+        
+        return jsonify({"files": files})
+        
+    except Exception as e:
+        return jsonify({"error": "Unable to access posts directory"}), 500
+
+@app.route('/posts/<filename>', methods=['GET'])
+def get_post_content(filename):
+    """Return the raw markdown content for a given file (for frontend)."""
+    try:
+        # Basic security: ensure filename is safe
+        if not filename.endswith('.md'):
+            return jsonify({"error": "Invalid file type. Only .md files are allowed"}), 400
+            
+        if '..' in filename or '/' in filename or '\\' in filename:
+            return jsonify({"error": "Invalid filename"}), 400
+        
+        file_path = os.path.join(POSTS_DIR, filename)
+        
+        # Check if file exists
+        if not os.path.exists(file_path):
+            return jsonify({"error": "File not found"}), 404
+            
+        # Read and return file content
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            
+        return content, 200, {'Content-Type': 'text/plain; charset=utf-8'}
         
     except Exception as e:
         return jsonify({"error": "Internal server error occurred"}), 500

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/app.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/client/build/index.html"
+    }
+  ],
+  "functions": {
+    "api/app.py": {
+      "runtime": "python3.12"
+    }
+  }
+}
